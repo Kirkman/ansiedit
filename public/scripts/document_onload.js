@@ -3,6 +3,7 @@ var title;
 var palette;
 var font;
 var textArtCanvas;
+var traceCanvas;
 var cursor;
 var selectionCursor;
 var positionInfo;
@@ -78,6 +79,47 @@ document.addEventListener("DOMContentLoaded", () => {
         onClick($("open-cancel"), () => {
             hideOverlay($("open-overlay"));
         });
+
+
+        onClick($("trace"), () => {
+            showOverlay($("trace-overlay"));
+        });
+        onFileChange($("open-trace-file"), (file) => {
+            var currentCanvas = $("canvas-container");
+            traceCanvas = createCanvas( currentCanvas.offsetWidth, currentCanvas.offsetHeight );
+            traceCanvas.id = "trace-canvas";
+            $("canvas-container").prepend(traceCanvas);
+            $("trace-canvas").classList.add("visible");
+            $("trace-toggle").classList.add("enabled");
+            var traceCtx = traceCanvas.getContext("2d");
+
+            var reader = new FileReader();
+            reader.addEventListener("load", function (evt) {
+                var traceImg = new Image();
+                traceImg.src = reader.result;
+                traceImg.onload = function() {
+                    var hRatio = traceCanvas.width / traceImg.width;
+                    var vRatio = traceCanvas.height / traceImg.height;
+                    var ratio  = Math.min ( hRatio, vRatio );
+                    var centerShift_x = ( traceCanvas.width - traceImg.width*ratio ) / 2;
+                    var centerShift_y = ( traceCanvas.height - traceImg.height*ratio ) / 2;  
+                    traceCtx.drawImage(
+                        traceImg, 
+                        0, 0, traceImg.width, traceImg.height, 
+                        centerShift_x, centerShift_y, traceImg.width*ratio, traceImg.height*ratio
+                    );
+                }
+                hideOverlay($("trace-overlay"));
+                $("open-trace-file").value = "";
+            });
+            reader.readAsDataURL(file);
+        });
+        onClick($("open-trace-cancel"), () => {
+            hideOverlay($("trace-overlay"));
+        });
+
+
+
         onClick($("edit-sauce"), () => {
             showOverlay($("sauce-overlay"));
             keyboard.ignore();
@@ -179,6 +221,29 @@ document.addEventListener("DOMContentLoaded", () => {
         });
         var grid = createGrid($("grid"));
         var gridToggle = createSettingToggle($("grid-toggle"), grid.isShown, grid.show);
+
+        var trace = {
+            visible: function() {
+                var traceCanvas = document.getElementById("trace-canvas");
+                if (traceCanvas) {
+                    return traceCanvas.classList.contains("visible");
+                }
+                return false;
+            },
+            toggle: function( ) {
+                var traceCanvas = document.getElementById("trace-canvas");
+                if ( traceCanvas ) {
+                    if ( trace.visible() ) {
+                        traceCanvas.classList.remove("visible");
+                    }
+                    else {
+                        traceCanvas.classList.add("visible");
+                    }
+                }
+            }
+        };
+        var traceToggle = createSettingToggle( $("trace-toggle"), trace.visible , trace.toggle );
+
         var freestyle = createFreehandController(createShadingPanel());
         Toolbar.add($("freestyle"), freestyle.enable, freestyle.disable);
         var characterBrush = createFreehandController(createCharacterBrushPanel());

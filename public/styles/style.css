@@ -533,3 +533,14 @@ canvas.selection-cursor {
     border-left: 1px solid rgb(63, 63, 63);
     background-color: rgb(95, 95, 95);
 }
+#canvas-container canvas#trace-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0.5;
+    pointer-events: none;
+    display: none;
+}
+#canvas-container canvas#trace-canvas.visible {
+    display: block;
+}
